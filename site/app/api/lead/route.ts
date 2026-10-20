@@ -18,7 +18,7 @@ const str = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice
 async function saveToSupabase(row: Record<string, unknown>) {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SECRET_KEY;
-  if (!url || !key) throw new Error("supabase not configured");
+  if (!url || !key) throw new Error(`supabase not configured: ${!url ? "SUPABASE_URL " : ""}${!key ? "SUPABASE_SECRET_KEY" : ""}`);
   const res = await fetch(`${url.replace(/\/$/, "")}/rest/v1/leads`, {
     method: "POST",
     headers: {
@@ -29,19 +29,19 @@ async function saveToSupabase(row: Record<string, unknown>) {
     },
     body: JSON.stringify(row),
   });
-  if (!res.ok) throw new Error(`supabase ${res.status}`);
+  if (!res.ok) throw new Error(`supabase ${res.status}: ${(await res.text()).slice(0, 300)}`);
 }
 
 async function sendToTelegram(text: string) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
-  if (!token || !chatId) throw new Error("telegram not configured");
+  if (!token || !chatId) throw new Error(`telegram not configured: ${!token ? "TELEGRAM_BOT_TOKEN " : ""}${!chatId ? "TELEGRAM_CHAT_ID" : ""}`);
   const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true }),
   });
-  if (!res.ok) throw new Error(`telegram ${res.status}`);
+  if (!res.ok) throw new Error(`telegram ${res.status}: ${(await res.text()).slice(0, 300)}`);
 }
 
 export async function POST(req: Request) {
